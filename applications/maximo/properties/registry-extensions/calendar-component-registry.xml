@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Component registry entry for the MAS Calendar control.
+
+    The component's parent class is `BoundComponentInstance`. THIS IS THE OTHER
+    HALF OF THE NEXT/PREV FIX:
+    - BoundComponentInstance (psdi.webclient.system.runtime.BoundComponentInstance)
+      subscribes to attribute-change events on its bound DataBean.
+    - When the user clicks Next/Previous in the app toolbar, the DataBean's MBO
+      changes, which invalidates every bound component -> our JSP renderer is
+      invoked again with the new MBO context -> the calendar re-renders with
+      the events for the newly-selected parent record.
+    Declaring a plain ComponentInstance would NOT re-render on navigation.
+
+    `defaultrender` is also defined here because the IBM Maximo forum answer
+    referenced in the relia.app Part IV comments calls it out as required for
+    bound components that need to read the bound value via boundComponent.
+-->
+<component-registry basedir="webclient/components"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:noNamespaceSchemaLocation='../component-registry.xsd'>
+	<component-descriptor name="calendarcomp"  instance-class="${package}.controller.BoundComponentInstance">
+
+        <property-list>
+            <property name="id">
+                <flag name="final"/>
+            </property>
+            <!-- Bound-component properties (required for refresh behaviour) -->
+            <property name="dataattribute">
+                <default-value></default-value>
+            </property>
+            <property name="datasrc">
+                <default-value></default-value>
+            </property>
+            <property name="defaultrender">
+                <default-value>false</default-value>
+            </property>
+            <property name="beanclass">
+                <default-value>psdi.webclient.system.beans.DataBean</default-value>
+            </property>
+            <!-- Calendar data mapping -->
+            <!-- Method 1: combined start/end datetime attributes -->
+            <property name="startattribute">
+                <default-value></default-value>
+            </property>
+            <property name="endattribute">
+                <default-value></default-value>
+            </property>
+            <!-- Method 2: work date + separate start/end time attributes -->
+            <property name="workdateattribute">
+                <default-value></default-value>
+            </property>
+            <property name="starttimeattribute">
+                <default-value></default-value>
+            </property>
+            <property name="endtimeattribute">
+                <default-value></default-value>
+            </property>
+            <!-- Method 3: date range + separate start/end time attributes -->
+            <!-- (shares starttimeattribute / endtimeattribute with method 2) -->
+            <property name="startdaterangeattribute">
+                <default-value></default-value>
+            </property>
+            <property name="enddaterangeattribute">
+                <default-value></default-value>
+            </property>
+            <!-- Title attribute -->
+            <property name="titleattribute">
+                <default-value></default-value>
+            </property>
+
+            <!-- Primary filter (replaces personattribute) -->
+            <!-- Underlying value used for grouping / filtering -->
+            <property name="primaryfiltervalue">
+                <default-value></default-value>
+            </property>
+            <!-- Attribute whose value is shown for each entry in the legend -->
+            <property name="primaryfilterdisplay">
+                <default-value></default-value>
+            </property>
+            <!-- Human-readable label shown on the primary filter tab -->
+            <property name="primaryfilterlabel">
+                <default-value>People</default-value>
+            </property>
+
+            <!-- Secondary filter -->
+            <!-- Underlying value used for grouping / filtering -->
+            <property name="secondaryfiltervalue">
+                <default-value></default-value>
+            </property>
+            <!-- Attribute whose value is shown for each entry in the legend -->
+            <property name="secondaryfilterdisplay">
+                <default-value></default-value>
+            </property>
+            <property name="secondaryfilterlabel">
+                <default-value></default-value>
+            </property>
+
+            <!-- Group-by (tree) filters -->
+            <!-- Attribute used as the level-1 key of the primary filter tree -->
+            <property name="primarygroupbyvalue">
+                <default-value></default-value>
+            </property>
+            <!-- Attribute whose value is displayed for each level-1 primary tree node -->
+            <property name="primarygroupbydisplay">
+                <default-value></default-value>
+            </property>
+            <!-- Attribute used as the level-1 key of the secondary filter tree -->
+            <property name="secondarygroupbyvalue">
+                <default-value></default-value>
+            </property>
+            <!-- Attribute whose value is displayed for each level-1 secondary tree node -->
+            <property name="secondarygroupbydisplay">
+                <default-value></default-value>
+            </property>
+
+            <!-- Duplicate removal columns (';' or ',' separated, case-insensitive) -->
+            <property name="duplicatecolumns">
+                <default-value></default-value>
+            </property>
+
+            <!-- Attribute rendered as a secondary label underneath the event title -->
+            <property name="descattribute">
+                <default-value></default-value>
+            </property>
+
+            <!-- Appearance / behaviour -->
+            <property name="height">
+                <default-value>600</default-value>
+            </property>
+            <property name="defaultview">
+                <default-value>month</default-value>
+            </property>
+            <property name="readonly">
+                <default-value>false</default-value>
+            </property>
+            <property name="showlegend">
+                <default-value>true</default-value>
+            </property>
+            <property name="assetpath">
+                <default-value></default-value>
+            </property>
+            <property name="cssclass">
+                <default-value></default-value>
+            </property>
+            <property name="jsp-filename">
+                <default-value>calendarcontrol</default-value>
+            </property>
+        </property-list>
+
+    </component-descriptor>
+
+</component-registry>

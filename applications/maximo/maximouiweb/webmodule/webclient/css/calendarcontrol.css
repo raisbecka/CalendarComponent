@@ -1,0 +1,195 @@
+/* =====================================================================
+   calendarcontrol.css  -  styling for the reusable MAS <calendarcontrol>
+   Sits next to (and complements) FullCalendar's own stylesheet so the
+   legend and the calendar share the same visual language.
+   ===================================================================== */
+
+.mascal-root {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    border: 1px solid #ccc;
+    background: #fff;
+    box-sizing: border-box;
+    overflow: hidden;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size: 12px;
+}
+
+/* ---------- Legend (left, vertically centred) ---------- */
+.mascal-legend {
+    width: 220px;
+    min-width: 220px;
+    max-width: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: top;          /* vertically centre the body */
+    border-right: 1px solid #ddd;
+    background: #fafafa;
+    overflow: hidden;
+}
+
+.mascal-tabs {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    flex: 0 0 auto;
+}
+.mascal-tab {
+    flex: 1 1 0;
+    border: none;
+    background: #ececec;
+    color: #444;
+    padding: 8px 6px;
+    cursor: pointer;
+    font-size: 12px;
+    border-right: 1px solid #ddd;
+}
+.mascal-tab:last-child { border-right: none; }
+.mascal-tab.active {
+    background: #fff;
+    color: #2e6da4;
+    border-bottom: 2px solid #2e6da4;
+    font-weight: 600;
+}
+
+.mascal-legend-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 6px 4px;
+}
+
+.mascal-legend-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: none;
+}
+.mascal-legend-list.active { display: block; }
+
+.mascal-legend-row {
+    display: flex;
+    align-items: center;
+    padding: 5px 8px;
+    border-radius: 3px;
+    gap: 8px;
+    cursor: default;
+}
+.mascal-legend-row:hover { background: #eef4fb; }
+
+.mascal-legend-row input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.mascal-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    border: 1px solid rgba(0,0,0,0.15);
+}
+
+.mascal-legend-label {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+}
+
+/* When a row is unchecked, dim it so the user can see it's hidden. */
+.mascal-legend-row input[type="checkbox"]:not(:checked) ~ .mascal-legend-label {
+    color: #bbb;
+    text-decoration: line-through;
+}
+.mascal-legend-row input[type="checkbox"]:not(:checked) ~ .mascal-swatch {
+    opacity: 0.35;
+}
+
+/* ---------- Legend tree (group-by, two levels) ---------- */
+.mascal-legend-group {
+    background: #eef2f7;
+    margin-top: 4px;
+}
+.mascal-legend-group:first-child { margin-top: 0; }
+.mascal-legend-group-label { font-weight: 600; }
+.mascal-legend-child {
+    padding-left: 28px;
+    background: transparent;
+}
+
+/* ---------- Calendar (right, fills remaining space) ---------- */
+.mascal-calendar {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+.mascal-calendar .fc { height: 100%; }
+
+.mascal-event {
+    border-left-width: 3px !important;
+    padding-left: 2px;
+}
+
+/* Horizontal (dayGrid) events have no vertical room, so flow the
+   description inline after the title instead. */
+.fc-h-event .mascal-ev-desc {
+    display: inline;
+    margin-left: 4px;
+    font-style: italic;
+}
+
+/* Event that currently has focus (single click / DataBean current MBO). */
+.mascal-event-focused {
+    outline: 2px solid #1a4d80 !important;
+    outline-offset: 1px;
+    box-shadow: 0 0 6px rgba(46, 109, 164, 0.55);
+    z-index: 8;
+}
+
+/* ---------- Responsive: stack legend above calendar on narrow screens ---------- */
+@media (max-width: 768px) {
+    .mascal-root       { flex-direction: column; height: auto !important; }
+    .mascal-legend     { width: 100%; max-width: none; min-width: 0;
+                         flex-direction: row; flex-wrap: wrap; }
+    .mascal-legend-body{ max-height: 200px; }
+    .mascal-calendar   { min-height: 400px; }
+}
+
+.mascal-event-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    line-height: 1.2;
+}
+
+.mascal-event-title {
+    display: block;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mascal-event-desc {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.85em;
+    font-weight: normal;
+    line-height: 1.2;
+    opacity: 0.9;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Allow the custom content to use the available event width. */
+.mascal-root .fc-event-main-frame,
+.mascal-root .fc-event-main {
+    min-width: 0;
+    overflow: hidden;
+}
+

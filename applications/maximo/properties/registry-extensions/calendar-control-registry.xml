@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Control registry entry for the reusable MAS Calendar control.
+
+    Defines the <calendarcontrol> element that developers can drop into
+    any Application Designer presentation XML.
+
+    IMPORTANT (next/prev refresh fix):
+    The control declares `datasrc` and `dataattribute` and forwards both to
+    the component via @{...} expressions. This causes the underlying component
+    to be a "bound" component that is automatically invalidated (and re-rendered)
+    whenever the parent DataBean's MBO changes - i.e. when the user clicks the
+    Next / Previous record buttons in the application toolbar. Without these two
+    properties and the @{dataattribute} forwarding, the control only renders once
+    and never refreshes on record navigation (the known Maximo issue documented
+    in the relia.app Part IV comments).
+-->
+<control-registry basedir="webclient/controls" package="psdi.webclient.controls" 
+		xsi:noNamespaceSchemaLocation='../control-registry.xsd'
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <control-descriptor name="calendarcontrol">
+        <property-list>
+            <!-- Standard Maximo control properties -->
+            <property name="id">
+                <flag name="final"/>
+            </property>
+            <property name="datasrc" />
+            <property name="dataattribute" />
+            <property name="beanclass" />
+            <property name="cssclass" />
+            <property name="mrl" />
+            <property name="permission" />
+
+            <!-- ===== Calendar data mapping properties ===== -->
+            <!-- Method 1: Attribute used for the event START datetime -->
+            <property name="startattribute" />
+            <!-- Method 1: Attribute used for the event END datetime -->
+            <property name="endattribute" />
+            <!-- Method 2: Attribute containing the work date (date component) -->
+            <property name="workdateattribute" />
+            <!-- Methods 2 & 3: Attribute containing the event start time (time component) -->
+            <property name="starttimeattribute" />
+            <!-- Methods 2 & 3: Attribute containing the event end time (time component) -->
+            <property name="endtimeattribute" />
+            <!-- Method 3: Attribute containing the start of the date range -->
+            <property name="startdaterangeattribute" />
+            <!-- Method 3: Attribute containing the end of the date range -->
+            <property name="enddaterangeattribute" />
+            <!-- Attribute used for the event TITLE -->
+            <property name="titleattribute" />
+
+            <!-- ===== Primary filter properties (replaces personattribute) ===== -->
+            <!-- Attribute used as the underlying key for grouping / colour / filtering -->
+            <property name="primaryfiltervalue" />
+            <!-- Attribute whose value is displayed for each unique entry in the legend -->
+            <property name="primaryfilterdisplay" />
+            <!-- Human-readable label shown on the primary filter tab -->
+            <property name="primaryfilterlabel" />
+
+            <!-- ===== Secondary (custom) filter properties ===== -->
+            <!-- Attribute used as the underlying key for the secondary legend tab -->
+            <property name="secondaryfiltervalue" />
+            <!-- Attribute whose value is displayed for each unique entry in the secondary legend -->
+            <property name="secondaryfilterdisplay" />
+            <!-- Human-readable label shown on the secondary filter tab -->
+            <property name="secondaryfilterlabel" />
+
+            <!-- ===== Group-by (tree) filter properties ===== -->
+            <!-- Attribute used as the level-1 key of the primary filter tree -->
+            <property name="primarygroupbyvalue" />
+            <!-- Attribute whose value is displayed for each level-1 primary tree node -->
+            <property name="primarygroupbydisplay" />
+            <!-- Attribute used as the level-1 key of the secondary filter tree -->
+            <property name="secondarygroupbyvalue" />
+            <!-- Attribute whose value is displayed for each level-1 secondary tree node -->
+            <property name="secondarygroupbydisplay" />
+
+            <!-- ===== Duplicate removal ===== -->
+            <!-- ';' or ',' separated, case-insensitive column list; only the first record
+                 per unique combination of these column values is rendered -->
+            <property name="duplicatecolumns" />
+
+            <!-- ===== Event description ===== -->
+            <!-- Attribute rendered as a secondary label directly underneath the title -->
+            <property name="descattribute" />
+
+            <!-- ===== Behaviour / appearance properties ===== -->
+            <!-- Pixel height of the calendar (and legend) viewport -->
+            <property name="height" />
+            <!-- Initial view: month | week | day -->
+            <property name="defaultview" />
+            <!-- true|false - when true the calendar is not editable (drag/resize disabled) -->
+            <property name="readonly" />
+            <!-- true|false - when false the entire left legend is hidden -->
+            <property name="showlegend" />
+            <!-- Optional override path for the static FullCalendar assets (defaults to webclient/lib) -->
+            <property name="assetpath" />
+        </property-list>
+        <component-list>
+            <components id="${name}_components_h" layout="horizontal">
+                <calendarcomp id="${name}_component"
+                    dataattribute="@{dataattribute}"
+                    datasrc="@{datasrc}"
+                    startattribute="@{startattribute}"
+                    endattribute="@{endattribute}"
+                    workdateattribute="@{workdateattribute}"
+                    starttimeattribute="@{starttimeattribute}"
+                    endtimeattribute="@{endtimeattribute}"
+                    startdaterangeattribute="@{startdaterangeattribute}"
+                    enddaterangeattribute="@{enddaterangeattribute}"
+                    titleattribute="@{titleattribute}"
+                    primaryfiltervalue="@{primaryfiltervalue}"
+                    primaryfilterdisplay="@{primaryfilterdisplay}"
+                    primaryfilterlabel="@{primaryfilterlabel}"
+                    secondaryfiltervalue="@{secondaryfiltervalue}"
+                    secondaryfilterdisplay="@{secondaryfilterdisplay}"
+                    secondaryfilterlabel="@{secondaryfilterlabel}"
+                    primarygroupbyvalue="@{primarygroupbyvalue}"
+                    primarygroupbydisplay="@{primarygroupbydisplay}"
+                    secondarygroupbyvalue="@{secondarygroupbyvalue}"
+                    secondarygroupbydisplay="@{secondarygroupbydisplay}"
+                    duplicatecolumns="@{duplicatecolumns}"
+                    descattribute="@{descattribute}"
+                    height="@{height}"
+                    defaultview="@{defaultview}"
+                    readonly="@{readonly}"
+                    showlegend="@{showlegend}"
+                    assetpath="@{assetpath}"
+                    cssclass="@{cssclass}" />
+            </components>
+        </component-list>
+        <containers>
+            <container name="section" />
+            <container name="sectioncol" />
+        </containers>
+    </control-descriptor>
+</control-registry>
