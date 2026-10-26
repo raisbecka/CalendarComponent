@@ -167,6 +167,7 @@
 
     JSONArray events = new JSONArray();
     SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+    SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.US);
 
     if (evBean != null) {
         // Capture the DataBean's current MBO BEFORE the iteration below: the
@@ -430,6 +431,24 @@
                 }
             }
 
+            String evStartTime = "", evEndTime = "";
+            try {
+                Date value = mbo.getDate(starttimeAttr.length() > 0 ? starttimeAttr : "STARTTIME");
+                if (value != null) evStartTime = timeFormat.format(value);
+            } catch (Exception ex) {}
+            try {
+                Date value = mbo.getDate(endtimeAttr.length() > 0 ? endtimeAttr : "ENDTIME");
+                if (value != null) evEndTime = timeFormat.format(value);
+            } catch (Exception ex) {}
+            Double evWorkHours = null;
+            String evWorkHoursError = null;
+            try {
+                evWorkHours = Double.valueOf(mbo.getDouble("WORKHOURS"));
+            } catch (Exception ex) {
+                evWorkHoursError = ex.getClass().getName();
+                application.log("Calendar control " + ctrlId + ": unable to read WORKHOURS for row " + i, ex);
+            }
+
             // ---- Build one event object per date range entry ----
             String mboId = String.valueOf(mbo.getString("PRIMARYID"));
             for (String[] dr : dateRanges) {
@@ -449,6 +468,10 @@
                 }
                 ev.put("title",        evTitle == null ? "" : evTitle);
                 ev.put("desc",         evDesc);
+                ev.put("displayStartTime", evStartTime.length() > 0 ? evStartTime : dStart.substring(11, 16));
+                ev.put("displayEndTime", evEndTime.length() > 0 ? evEndTime : (dr[1].length() > 0 ? dr[1].substring(11, 16) : ""));
+                ev.put("workHours",    evWorkHours);
+                if (evWorkHoursError != null) ev.put("workHoursReadError", evWorkHoursError);
                 ev.put("mboId",        mboId);
                 ev.put("rowIndex",     i);
                 ev.put("focused",      mboId.equals(currentMboId));

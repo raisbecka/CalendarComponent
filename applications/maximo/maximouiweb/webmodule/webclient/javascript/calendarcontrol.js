@@ -18,10 +18,8 @@
  * filter values found under each group as children. Both levels can be
  * toggled independently.
  *
- * Single-clicking an event focuses it and sets the DataBean's current MBO to
- * the event's record (via the calendar servlet, then a page reload so every
- * bound component picks up the new current record). Double-clicking an event
- * while in the month view switches to the day view for that event's date.
+ * Clicking an event opens a scrollable dialog listing the visible events
+ * for that day, including events hidden by the calendar's overflow limit.
  */
 (function (global) {
     "use strict";
@@ -40,10 +38,6 @@
         timeGridDay:  "day"
     };
 
-    /* How long a single click waits before it is acted on, so that a
-       double-click (which fires two clicks first) can cancel it. */
-    var CLICK_DISAMBIGUATE_MS = 275;
-
     /* -------------------------------------------------------------- */
     function init(root) {
         var key   = root.getAttribute("data-mascal");
@@ -54,7 +48,6 @@
 
         var opts       = data.options || {};
         var showLegend = opts.showLegend !== false;
-        var ctrlId     = opts.ctrlId;        
         var readOnly   = opts.readonly === true;
         var startView  = VIEW_MAP[opts.defaultView] || "dayGridMonth";
         var height     = parseInt(opts.height, 10) || 600;
@@ -106,9 +99,98 @@
             });
         }
 
-        /* ---- Click / focus state ---- */
-        var pendingClick = null;   /* { event, el, timer } */
-        var focusedEl    = null;
+        var dayDialog = null;
+
+        function formatTime(value) {
+            var parts = /^(\d{1,2}):(\d{2})/.exec(value || "");
+            if (!parts) { return ""; }
+            var hour = parseInt(parts[1], 10);
+            return (hour % 12 || 12) + ":" + parts[2] + (hour < 12 ? "AM" : "PM");
+        }
+
+        function eventContent(event, showWorkHours) {
+            var props = event.extendedProps || {};
+            var desc = props.desc == null ? "" : String(props.desc).trim();
+            var wrapper = document.createElement("div");
+            wrapper.className = "mascal-event-content";
+
+            var titleEl = document.createElement("div");
+            titleEl.className = "mascal-event-title";
+            titleEl.textContent = (event.title || "") + (desc ? "  " + desc : "");
+            wrapper.appendChild(titleEl);
+
+            var startTime = props.displayStartTime == null ? (event.startStr || "").slice(11, 16) : props.displayStartTime;
+            var endTime = props.displayEndTime == null ? (event.endStr || "").slice(11, 16) : props.displayEndTime;
+            startTime = formatTime(startTime);
+            endTime = formatTime(endTime);
+            if (startTime || endTime) {
+                var timeEl = document.createElement("div");
+                timeEl.className = "mascal-event-time";
+                timeEl.textContent = startTime && endTime ? startTime + " - " + endTime : startTime || endTime;
+                if (showWorkHours && props.workHours != null && props.workHours !== "") {
+                    timeEl.textContent += " (" + props.workHours + " hours)";
+                }
+                wrapper.appendChild(timeEl);
+            }
+            return wrapper;
+        }
+
+        function openDayDialog(info) {
+            var existing = document.querySelector(".mascal-day-dialog");
+            if (existing) { existing.close(); }
+
+            var cell = info.el.closest("[data-date]");
+            var dateKey = cell ? cell.getAttribute("data-date").slice(0, 10) : info.event.startStr.slice(0, 10);
+            var dayStart = new Date(dateKey + "T00:00:00");
+            var dayEnd = new Date(dayStart.getTime());
+            dayEnd.setDate(dayEnd.getDate() + 1);
+            var events = calendar.getEvents().filter(function (event) {
+                return event.start && event.start < dayEnd &&
+                    (event.end && event.end > event.start ? event.end > dayStart : event.start >= dayStart);
+            }).sort(function (left, right) {
+                return left.start - right.start || (left.title || "").localeCompare(right.title || "");
+            });
+
+            var dialog = document.createElement("dialog");
+            dialog.className = "mascal-day-dialog";
+            dialog.setAttribute("aria-modal", "true");
+            dialog.setAttribute("aria-labelledby", key + "_day_title");
+            var header = document.createElement("div");
+            header.className = "mascal-day-header";
+            var heading = document.createElement("h2");
+            heading.id = key + "_day_title";
+            heading.textContent = dayStart.toLocaleDateString(undefined, {
+                weekday: "long", year: "numeric", month: "long", day: "numeric"
+            });
+            var close = document.createElement("button");
+            close.type = "button";
+            close.className = "mascal-day-close";
+            close.textContent = "\u00d7";
+            close.setAttribute("aria-label", "Close day events");
+            close.title = "Close";
+            close.addEventListener("click", function () { dialog.close(); });
+            header.appendChild(heading);
+            header.appendChild(close);
+            dialog.appendChild(header);
+
+            var list = document.createElement("ol");
+            list.className = "mascal-day-events";
+            events.forEach(function (event) {
+                var item = document.createElement("li");
+                item.style.borderLeftColor = event.backgroundColor || "#888";
+                item.appendChild(eventContent(event, true));
+                list.appendChild(item);
+            });
+            dialog.appendChild(list);
+            dialog.addEventListener("close", function () {
+                dialog.remove();
+                if (dayDialog === dialog) { dayDialog = null; }
+            });
+            document.body.appendChild(dialog);
+            dayDialog = dialog;
+            dialog.showModal();
+            close.focus();
+        }
 
         /* ---------------- FullCalendar instance -------------------- */
         var calendar = new FullCalendar.Calendar(calEl, {
@@ -145,26 +227,6 @@
                    DataBean's current MBO (survives the post-select reload). */
                 if (p.focused) {
                     e.classList.add("mascal-event-focused");
-                    focusedEl = e;
-                }
-
-                /* Double-click (FC v6 has no eventDoubleClick option). */
-                var dbl = function (ev) {
-                    ev.stopPropagation();
-                    clearPendingClick();
-                    MASCAL.fire("eventdblclick", { id: arg.event.id, rootId: key, jsEvent: ev });
-                    if (calendar.view.type === "dayGridMonth") {
-                        calendar.gotoDate(arg.event.start);
-                        calendar.changeView("timeGridDay");
-                    }
-                };
-                e.addEventListener("dblclick", dbl);
-                e.__mascalDbl = dbl;
-            },
-            eventWillUnmount: function (arg) {
-                if (arg.el && arg.el.__mascalDbl) {
-                    arg.el.removeEventListener("dblclick", arg.el.__mascalDbl);
-                    arg.el.__mascalDbl = null;
                 }
             },
 
@@ -172,53 +234,17 @@
             eventDrop: function (info) { handleEdit(info, "move"); },
             eventResize: function (info) { handleEdit(info, "resize"); },
 
-            /* Single click: defer the action briefly so a double-click can
-               cancel it. */
             eventClick: function (info) {
-                var ev = info.event.extendedProps || {};
-                //alert("Event clicked:\n\n" +ctrlId+ "\n" + info.event.id + "\n" + ev.rowIndex + "\n" + ev.mboId);
+                info.jsEvent.preventDefault();
+                openDayDialog(info);
                 MASCAL.fire("eventclick", { id: info.event.id, rootId: key, jsEvent: info.jsEvent });
-                window.sendEvent("selectrecord", ctrlId, String(ev.rowIndex));
-                if (readOnly) { info.jsEvent.preventDefault(); }
             },
             eventContent: function (arg) {
-                var title = arg.event.title || "";
-                var props = arg.event.extendedProps || {};
-                var desc  = props.desc == null ? "" : String(props.desc).trim();
-
-                var wrapper = document.createElement("div");
-                wrapper.className = "mascal-event-content";
-
-                var titleEl = document.createElement("div");
-                titleEl.className = "mascal-event-title";
-                titleEl.textContent = title;
-                wrapper.appendChild(titleEl);
-
-                if (desc !== "") {
-                    var descEl = document.createElement("div");
-                    descEl.className = "mascal-event-desc";
-                    descEl.textContent = desc;
-                    wrapper.appendChild(descEl);
-                }
-
-                return {
-                    domNodes: [wrapper]
-                };
+                return { domNodes: [eventContent(arg.event)] };
             }
         });
 
         calendar.render();
-
-        /* Restore the last view (type + date) if the page was reloaded after
-           an event selection, so the user stays where they were. */
-        try {
-            var saved = global.sessionStorage.getItem("mascal_view_" + key);
-            if (saved) {
-                var sv = JSON.parse(saved);
-                if (sv && sv.view && sv.view !== startView) { calendar.changeView(sv.view); }
-                if (sv && sv.date) { calendar.gotoDate(new Date(sv.date)); }
-            }
-        } catch (e) { /* ignore */ }
 
         /* Persist a drag/resize back to Maximo via the calendar servlet.
            Failures roll the visual change back. */
@@ -249,37 +275,13 @@
             };
             xhr.send(body);
         }
-        function saveViewState() {
-            try {
-                global.sessionStorage.setItem("mascal_view_" + key, JSON.stringify({
-                    view: calendar.view.type,
-                    date: calendar.getDate().toISOString()
-                }));
-            } catch (e) { /* ignore */ }
-        }
-
-        /* ---- Single click: focus the event + set the current MBO ---- */
-        function clearPendingClick() {
-            if (pendingClick) { clearTimeout(pendingClick.timer); pendingClick = null; }
-        }
-
-        function focusEventEl(el) {
-            /* An event can render as several segments; clear them all. */
-            var prev = calEl.querySelectorAll(".mascal-event-focused");
-            for (var i = 0; i < prev.length; i++) {
-                prev[i].classList.remove("mascal-event-focused");
-            }
-            if (el) {
-                el.classList.add("mascal-event-focused");
-                focusedEl = el;
-                try { el.scrollIntoView({ block: "center" }); } catch (e) { /* ignore */ }
-            }
-        }
-
         /* ---------------- Legend rendering ------------------------- */
         if (showLegend) { buildLegend(root, data, pVis, sVis, refresh); }
 
-        function refresh() { calendar.removeAllEvents(); calendar.addEventSource(visibleEvents()); }
+        function refresh() {
+            if (dayDialog) { dayDialog.close(); }
+            calendar.refetchEvents();
+        }
 
         /* Expose a tiny handle so the host page can poke the control. */
         MASCAL.instances = MASCAL.instances || {};
@@ -306,7 +308,7 @@
                     map[prefix + "c:" + n.key + "\u0001" + c.key] = true;
                 });
             } else {
-                map[prefix + n.key] = true;
+                map[prefix + ":" + n.key] = true;
             }
         });
     }
@@ -357,7 +359,7 @@
         ul.innerHTML = "";
         (nodes || []).forEach(function (node) {
             var isGroup = !!(node.children && node.children.length);
-            var key = isGroup ? prefix + "g:" + node.key : prefix + node.key;
+            var key = isGroup ? prefix + "g:" + node.key : prefix + ":" + node.key;
 
             var li = document.createElement("li");
             li.className = "mascal-legend-row" + (isGroup ? " mascal-legend-group" : "");

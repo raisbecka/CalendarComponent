@@ -31,6 +31,7 @@
             <property name="cssclass" />
             <property name="mrl" />
             <property name="permission" />
+            <property name="defaultrender" />
 
             <!-- ===== Calendar data mapping properties ===== -->
             <!-- Method 1: Attribute used for the event START datetime -->
@@ -124,6 +125,7 @@
                     descattribute="@{descattribute}"
                     height="@{height}"
                     defaultview="@{defaultview}"
+                    defaultrender="@{defaultrender}"
                     readonly="@{readonly}"
                     showlegend="@{showlegend}"
                     assetpath="@{assetpath}"

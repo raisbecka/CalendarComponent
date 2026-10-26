@@ -26,9 +26,7 @@
                 <flag name="final"/>
             </property>
             <!-- Bound-component properties (required for refresh behaviour) -->
-            <property name="dataattribute">
-                <default-value></default-value>
-            </property>
+            <property name="dataattribute"/>
             <property name="datasrc">
                 <default-value></default-value>
             </property>
