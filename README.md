@@ -1,45 +1,17 @@
-IBM Maximo / MAS Enhanced Calendar control
-By: Andrew Raisbeck
+## IBM Maximo / MAS Enhanced Calendar JSP Component
+
+#### By: Andrew Raisbeck
 
 The MAS Calendar control is built on the FullCalendar v6 JavaScript
 engine. FullCalendar is released under the MIT licence (see
-https://fullcalendar.io/license) but, because Maximo environments are
-usually behind a firewall with no internet access, the library files
-must be downloaded and deployed locally alongside this control.
+https://fullcalendar.io/license). You do NOT need a paid license for
+the features used here.
 
-## SETUP
-
-### A. Download FullCalendar JS Library Code
-
-What to download
-----------------
-From  https://fullcalendar.io/releases   grab the
-"FullCalendar Premium -> v6.x" -> **bundle** zip (the free MIT-licensed
-build is sufficient - you do NOT need a commercial licence for the
-features used here: dayGrid, timeGrid, interaction).
-
-You only need TWO files from the bundle:
-
-    fullcalendar-6.x.x/dist/index.global.js
-    fullcalendar-6.x.x/dist/index.css
-
-Where to put them
------------------
-Place them under:
-
-    maximo/applications/maximo/maximouiweb/webmodule/webclient/lib/fullcalendar/
-
-so the final paths are:
-
-    .../webclient/lib/fullcalendar/index.global.js
-    .../webclient/lib/fullcalendar/index.css
-
-(The renderer and the README both assume this path. If you need to host
-the files somewhere else, set the `assetpath` property on the control
-to the absolute URL prefix instead.)
+![calendar component screenshot](assets/calendarcontrol_redacted_names.png)
 
 Custom build
 ------------
+
 If you prefer a hand-built bundle, the only v6 plugins required are:
 
     @fullcalendar/core
@@ -47,21 +19,21 @@ If you prefer a hand-built bundle, the only v6 plugins required are:
     @fullcalendar/timegrid
     @fullcalendar/interaction
 
+You would then need to add the lib/libs under applications/maximo/maximouiweb/webclient/lib/fullcalendar/*.
 
 ### B. Deploy zipped applications folder as customization archive (IBM MAS)
 
-- Using 7-zip or **gasp** the WIndows shell abomination, zip the applications folder as-is.
+- Using 7-zip or **gasp** the WIndows shell abomination, zip the applications folder as-is. It's already in the right format for a MAS customization archive. 
 - Use a local file server, a public git repo, or similar to host the archive for download.
 - Open up IBM MAS, and:
-    1. In MAS suite menu, click Administration -> Workspace.
-    2. Click on the manage workspace.
-    3. Actions -> Update Configuration.
-    4. Customization.
-    5. Ensure a row exists for this customization archive - adding if needed
-    ** if the row already exists, change the label. Incrementing a version number works well.
+  1. In MAS suite menu, click Administration -> Workspace.
+  2. Click on the manage workspace.
+  3. Actions -> Update Configuration.
+  4. Customization.
+  5. Ensure a row exists for this customization archive - adding if needed
+     ** if the row already exists, change the label. Incrementing a version number works well.
 
 Wait for OpenShift to rebuild all the pods with your new custom component included in them, and done!
-
 
 ### C. Rapidly develop/test changes.
 
@@ -69,12 +41,11 @@ Once you've deployed the archive the first time, and the properties.jar has been
 
 I have noticed the JSP changes are instant, but for the JS (and likely CSS), the browser will cache and you'll need to clear temp files each time you mod anything in this way.
 
-
 ## SUMMARY OF USE:
 
 Other than being an example, this calendar control is a legitimately useful control to use in Maximo/Manage! Anywhere you would want to display stuff in a calendar (events, workorders, etc.), you can do it with this.
 
-Below are detailed descriptions of each Application XML property and what they are used for. Most of them are to be assigned attributes to use from each record. 
+Below are detailed descriptions of each Application XML property and what they are used for. Most of them are to be assigned attributes to use from each record.
 
 ### Populating the calendar with event objects
 
@@ -82,10 +53,10 @@ Below are the different ways to populate a set of Mbos as events on the calendar
 
 -- Method 1: Simple start date/time and end date/time for each event:
 
-Uses: 
+Uses:
     startattribute  - event start date/time
     endattribute    - event end date/time
-            
+
 -- Method 2: Work Date + Plus Start and End Time attributes (Same as MODAVAIL table):
 
 Uses:
@@ -106,8 +77,7 @@ Uses:
 titleattribute - Event title.
 descattribute - Secondary event text.
 
-
-### Calendar Data Filters 
+### Calendar Data Filters
 
 The control includes optional primary and secondary filtering mechanisms which can be used to show/hide events on the calendar by checking/unchecking boxes. You can also include a "group-by" attribute for both the primary and secondary calendar filter - which will organize you're filters in a 2-level hierarchy by the groupby attribute, and allow you to toggle the entire group on/off as needed.
 
@@ -119,13 +89,11 @@ primarygroupbyvalue - attribute which is used to group the filter values and is 
 
 The same options exist for secondary filters.
 
-
 ### Removing duplicates
 
 If you have a situation where you have many of a specific type of event on the same day, and you really just need to display that that AT LEAST ONE of that event type exists in the calendar (you want to group events by specific attributes and remove duplicates), use the below property:
 
-duplicatecolumns - a comma or semi-colon delimited list of attributes for which calendar events will be grouped and duplicates removed. 
-
+duplicatecolumns - a comma or semi-colon delimited list of attributes for which calendar events will be grouped and duplicates removed.
 
 ### Misc. Calendar Display Properties
 
